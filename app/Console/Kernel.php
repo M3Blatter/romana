@@ -26,6 +26,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('command:romanas')->hourly();
+        $schedule->command('command:romanasreporte')->dailyAt('08:00');
     }
 
     /**

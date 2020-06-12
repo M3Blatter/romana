@@ -51,12 +51,14 @@ class RomanasReporte extends Command
         */
 
         //Pesaje_Mop_Simple_Lautaro
+        //Trae todos los pesajes realizados
         $data = DB::connection('mysql_romanas')
             ->table('P_Mop_Simple_Lautaro')
             ->select('folio_mop', 'fe_ent', 'patente', 'bruto', 'maximo', 'sobrepeso')
             ->Where(DB::raw("DATE_FORMAT(fe_ent, '%Y-%m-%d')"), DB::raw('CURDATE() - interval 1 day'))
             ->orderBy('fe_ent', 'DESC')
             ->get();
+        //Trae todos los pesajes con sobrecarga
         $datos = DB::connection('mysql_romanas')
             ->table('P_Mop_Simple_Lautaro')
             ->select('folio_mop', 'fe_ent', 'patente', 'bruto', 'maximo', 'sobrepeso')
@@ -64,6 +66,7 @@ class RomanasReporte extends Command
             ->where('estado', '=', 'Fuera del límite MOP')
             ->orderBy('fe_ent', 'DESC')
             ->get();
+        //Trae todos los pesajes con sobrecarga pero que se han corregidos
         $datosLautaro = DB::connection('mysql_test')
             ->table('romana_corregido_lautaro')
             ->select('folio_mop', 'fecha', 'patente')
@@ -72,7 +75,6 @@ class RomanasReporte extends Command
             ->get();
 
         $correos = array();
-        /* array_push($correos, 'sergio.stapung@tecnodatos.cl');*/
         array_push($correos, 'martin.blatter@tecnodatos.cl');
         array_push($correos, 'sergio.stapung@tecnodatos.cl');
 
@@ -104,12 +106,14 @@ class RomanasReporte extends Command
         */
 
         //Pesaje_Mop_Simple
+        //Trae todos los pesajes realizados
         $data = DB::connection('mysql_romanas')
             ->table('P_Mop_Simple_Angol')
             ->select('folio_mop', 'fe_ent', 'patente', 'bruto', 'maximo', 'sobrepeso')
             ->Where(DB::raw("DATE_FORMAT(fe_ent, '%Y-%m-%d')"), DB::raw('CURDATE() - interval 1 day'))
             ->orderBy('fe_ent', 'DESC')
             ->get();
+        //Trae todos los pesajes con sobrecarga
         $datos = DB::connection('mysql_romanas')
             ->table('P_Mop_Simple_Angol')
             ->select('folio_mop', 'fe_ent', 'patente', 'bruto', 'maximo', 'sobrepeso')
@@ -117,6 +121,7 @@ class RomanasReporte extends Command
             ->where('estado', '=', 'Fuera del límite MOP')
             ->orderBy('fe_ent', 'DESC')
             ->get();
+        //Trae todos los pesajes con sobrecarga pero que se han corregidos
         $datosAngol = DB::connection('mysql_test')
             ->table('romana_corregido_angol')
             ->select('folio_mop', 'fecha', 'patente')
@@ -125,7 +130,6 @@ class RomanasReporte extends Command
             ->get();
 
         $correos = array();
-        /* array_push($correos, 'sergio.stapung@tecnodatos.cl');*/
         array_push($correos, 'martin.blatter@tecnodatos.cl');
         array_push($correos, 'sergio.stapung@tecnodatos.cl');
 
