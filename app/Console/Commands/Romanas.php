@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use DB;
+use App\Romana_corregido_angol;
+use App\Romana_corregido_lautaro;
 
 class Romanas extends Command
 {
@@ -19,7 +21,7 @@ class Romanas extends Command
      *
      * @var string
      */
-    protected $description = 'Comando para reporte de email automatico';
+    protected $description = 'Comando para cargar las tablas de los pesajes corregidos';
 
     /**
      * Create a new command instance.
@@ -39,43 +41,30 @@ class Romanas extends Command
     public function handle()
     {
         //Obtiene ultima fecha del registro de pesaje corregido en la tabla 'romana_corregido_lautaro'
-        $UltimoResgistroLautaro = DB::connection('mysql_test')
+        $UltimoResgistroLautaro = DB::connection('mysql')
             ->table('romana_corregido_lautaro')
             ->select('fecha')
             ->orderBy('fecha', 'desc')
             ->first();
-        //Obtiene ultima fecha del registro de pesaje corregido en la tabla 'romana_corregido_angol'
-        $UltimoResgistroAngol = DB::connection('mysql_test')
-            ->table('romana_corregido_angol')
-            ->select('fecha')
-            ->orderBy('fecha', 'desc')
-            ->first();
         $resultArrayRegistroLautaro = json_decode(json_encode($UltimoResgistroLautaro), true);
-        $resultArrayRegistroAngol = json_decode(json_encode($UltimoResgistroAngol), true);
-        if (count($resultArrayRegistroLautaro) == 1) {            
-                $fecha = $resultArrayRegistroLautaro['fecha'];
-                //Romana Lautaro        
-                //Obtiene el pesajes con estado "Fuera de limite MOP" de la tabla Pesaje_Mop_Simple_Lautaro
-                $datosLautaro = DB::connection('mysql_romanas')
-                    ->table('P_Mop_Simple_Lautaro')
-                    ->select('folio_mop', 'fe_ent', 'patente')
-                    ->where('estado', '=', 'Fuera del límite MOP')
-                    ->where('fe_ent', '>', $fecha)
-                    ->get();
-        }
-        if (count($resultArrayRegistroAngol) == 1) {
-                $fecha = $resultArrayRegistroAngol['fecha'];
-                //Romana Angol
-                //Obtiene el pesajes con estado "Fuera de limite MOP" de la tabla Pesaje_Mop_Simple_Angol
-                $datosAngol = DB::connection('mysql_romanas')
-                    ->table('P_Mop_Simple_Angol')
-                    ->select('folio_mop', 'fe_ent', 'patente')
-                    ->where('fe_ent', '>', $fecha)
-                    ->where('estado', '=', 'Fuera del límite MOP')
-                    ->get();
+        if (empty($UltimoResgistroLautaro)) {
+            //Romana Lautaro        
+            //Obtiene el pesajes con estado "Fuera de limite MOP" de la tabla Pesaje_Mop_Simple_Lautaro
+            $datosLautaro = DB::connection('mysql_romanas')
+                ->table('P_Mop_Simple_Lautaro')
+                ->select('folio_mop', 'fe_ent', 'patente')
+                ->where('estado', '=', 'Fuera del límite MOP')
+                ->get();
+        } elseif (count($resultArrayRegistroLautaro) == 1) {
+            $fecha = $resultArrayRegistroLautaro['fecha'];
+            $datosLautaro = DB::connection('mysql_romanas')
+                ->table('P_Mop_Simple_Lautaro')
+                ->select('folio_mop', 'fe_ent', 'patente')
+                ->where('estado', '=', 'Fuera del límite MOP')
+                ->where('fe_ent', '>', $fecha)
+                ->get();
         }
         $resultArrayLautaro = json_decode(json_encode($datosLautaro), true);
-        $resultArrayAngol = json_decode(json_encode($datosAngol), true);
 
         //Se recorre para obtener los registros con estado 'Dentro del límite MOP' para saber si se 
         //corrigio el pesaje en Lautaro
@@ -101,7 +90,7 @@ class Romanas extends Command
                         $folio = $value['folio_mop'];
                         $fech = $value['fe_ent'];
                         $patente = $value['patente'];
-                        $datosLautaro2 = DB::connection('mysql_test')
+                        $datosLautaro2 = DB::connection('mysql')
                             ->table('romana_corregido_lautaro')
                             ->select('fecha')
                             ->where('fecha', '=', $fech)
@@ -109,12 +98,46 @@ class Romanas extends Command
                         $resultArray5 = json_decode(json_encode($datosLautaro2), true);
                         //Se interta el registro en la tabla
                         if (empty($resultArray5)) {
-                            DB::connection('mysql_test')->table('romana_corregido_lautaro')->insert(['folio_mop' => $folio, 'patente' => $patente, 'fecha' => $fech]);
+                            //DB::connection('mysql')->table('romana_corregido_lautaro')->insert(['folio_mop' => $folio, 'patente' => $patente, 'fecha' => $fech]);
+                            $newdata = new Romana_corregido_lautaro();
+                            $newdata->folio_mop = $folio;
+                            $newdata->patente = $patente;
+                            $newdata->fecha = $fech;
+                            $newdata->save();
                         }
                     }
                 }
             }
         }
+
+        //Obtiene ultima fecha del registro de pesaje corregido en la tabla 'romana_corregido_angol'
+        $UltimoResgistroAngol = DB::connection('mysql')
+            ->table('romana_corregido_angol')
+            ->select('fecha')
+            ->orderBy('fecha', 'desc')
+            ->first();
+        $resultArrayRegistroAngol = json_decode(json_encode($UltimoResgistroAngol), true);
+
+        if (empty($resultArrayRegistroAngol)) {
+            //Romana Angol
+            //Obtiene el pesajes con estado "Fuera de limite MOP" de la tabla Pesaje_Mop_Simple_Angol
+            $datosAngol = DB::connection('mysql_romanas')
+                ->table('P_Mop_Simple_Angol')
+                ->select('folio_mop', 'fe_ent', 'patente')
+                ->where('estado', '=', 'Fuera del límite MOP')
+                ->get();
+        } elseif (count($resultArrayRegistroAngol) == 1) {
+            $fecha = $resultArrayRegistroAngol['fecha'];
+            $datosAngol = DB::connection('mysql_romanas')
+                ->table('P_Mop_Simple_Angol')
+                ->select('folio_mop', 'fe_ent', 'patente')
+                ->where('fe_ent', '>', $fecha)
+                ->where('estado', '=', 'Fuera del límite MOP')
+                ->get();
+        }
+        $resultArrayAngol = json_decode(json_encode($datosAngol), true);
+
+
         //Se recorre para obtener los registros con estado 'Dentro del límite MOP' para saber si se 
         //corrigio el pesaje en Angol
         if (count($resultArrayAngol) > 0) {
@@ -139,7 +162,7 @@ class Romanas extends Command
                         $folio = $valueDuplicado['folio_mop'];
                         $fech = $valueDuplicado['fe_ent'];
                         $patente = $valueDuplicado['patente'];
-                        $datosAngol2 = DB::connection('mysql_test')
+                        $datosAngol2 = DB::connection('mysql')
                             ->table('romana_corregido_angol')
                             ->select('fecha')
                             ->where('fecha', '=', $fech)
@@ -147,7 +170,12 @@ class Romanas extends Command
                         $resultArray5 = json_decode(json_encode($datosAngol2), true);
                         //Se interta el registro en la tabla
                         if (empty($resultArray5)) {
-                            DB::connection('mysql_test')->table('romana_corregido_angol')->insert(['folio_mop' => $folio, 'patente' => $patente, 'fecha' => $fech]);
+                            //DB::connection('mysql')->table('romana_corregido_angol')->insert(['folio_mop' => $folio, 'patente' => $patente, 'fecha' => $fech]);
+                            $newdata = new Romana_corregido_angol();
+                            $newdata->folio_mop = $folio;
+                            $newdata->patente = $patente;
+                            $newdata->fecha = $fech;
+                            $newdata->save();
                         }
                     }
                 }

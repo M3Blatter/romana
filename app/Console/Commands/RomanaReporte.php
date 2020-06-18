@@ -67,7 +67,7 @@ class RomanasReporte extends Command
             ->orderBy('fe_ent', 'DESC')
             ->get();
         //Trae todos los pesajes con sobrecarga pero que se han corregidos
-        $datosLautaro = DB::connection('mysql_test')
+        $datosLautaro = DB::connection('mysql')
             ->table('romana_corregido_lautaro')
             ->select('folio_mop', 'fecha', 'patente')
             ->Where(DB::raw("DATE_FORMAT(fecha, '%Y-%m-%d')"), DB::raw('CURDATE() - interval 1 day'))
@@ -122,7 +122,7 @@ class RomanasReporte extends Command
             ->orderBy('fe_ent', 'DESC')
             ->get();
         //Trae todos los pesajes con sobrecarga pero que se han corregidos
-        $datosAngol = DB::connection('mysql_test')
+        $datosAngol = DB::connection('mysql')
             ->table('romana_corregido_angol')
             ->select('folio_mop', 'fecha', 'patente')
             ->Where(DB::raw("DATE_FORMAT(fecha, '%Y-%m-%d')"), DB::raw('CURDATE() - interval 1 day'))
@@ -134,7 +134,6 @@ class RomanasReporte extends Command
         array_push($correos, 'sergio.stapung@tecnodatos.cl');
 
         $datos2 = 'Romana Angol';
-
 
         if (count($datos) > 0) {
 
