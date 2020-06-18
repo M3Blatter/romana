@@ -17,7 +17,7 @@ class CreateRomanaCorregidoAngolTable extends Migration
             $table->increments('id');
             $table->integer('folio_mop');
             $table->string('patente');
-            $table->date('fecha');
+            $table->dateTimeTz('fecha',0);
             $table->timestamps();
         });
     }
